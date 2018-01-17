@@ -44,7 +44,7 @@ public:
         if (!isWithinBounds(tileStartPos))
             return;
 
-        mStartPos = clampPointWithinBounds(pixelPosToTilePos(pixelPos));
+        mStartPos = pixelPosToTilePos(pixelPos);
         if (mTiles[tilePosToIndex(mStartPos)].passable) {
             setClosestAvailableTilePos(mStartPos);
             return;
@@ -64,7 +64,10 @@ public:
                     return;
             }
 
+            // Since we keep using the variable after each loop, we need to take it back to its last position.
             --currentPos.rx();
+            // Don't do the same tile twice in the first iteration of each loop.
+            ++currentPos.ry();
 
             for (; currentPos.y() < searchRect.y() + searchRect.height(); ++currentPos.ry()) {
                 if (setIfClosest(currentPos))
@@ -72,6 +75,7 @@ public:
             }
 
             --currentPos.ry();
+            --currentPos.rx();
 
             for (; currentPos.x() >= searchRect.x(); --currentPos.rx()) {
                 if (setIfClosest(currentPos))
@@ -79,9 +83,10 @@ public:
             }
 
             ++currentPos.rx();
+            --currentPos.ry();
 
-
-            for (; currentPos.y() > searchRect.y(); --currentPos.ry()) {
+            // - 1 because we don't want to do the top left tile twice.
+            for (; currentPos.y() > searchRect.y() - 1; --currentPos.ry()) {
                 if (setIfClosest(currentPos))
                     return;
             }
@@ -164,19 +169,6 @@ private:
                 || tilePos.y() < 0 || tilePos.y() >= mSizeInTiles.height());
     }
 
-    QPoint clampPointWithinBounds(QPoint tilePos) const
-    {
-        if (tilePos.x() < 0)
-            tilePos.setX(0);
-        if (tilePos.x() >= mSizeInTiles.width())
-            tilePos.setX(mSizeInTiles.width() - 1);
-        if (tilePos.y() < 0)
-            tilePos.setY(0);
-        if (tilePos.y() >= mSizeInTiles.height())
-            tilePos.setY(mSizeInTiles.height() - 1);
-        return tilePos;
-    }
-
     void setClosestAvailableTilePos(const QPoint &tilePos)
     {
         mClosestAvailableTilePos = tilePos;
@@ -185,7 +177,7 @@ private:
 
     bool setIfClosest(const QPoint &tilePos)
     {
-        qDebug() << "checking" << tilePos;
+//        qDebug() << "checking" << tilePos;
         if (isWithinBounds(tilePos) && mTiles[tilePosToIndex(tilePos)].passable) {
             setClosestAvailableTilePos(tilePos);
             return true;
