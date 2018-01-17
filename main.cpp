@@ -85,8 +85,8 @@ public:
             ++currentPos.rx();
             --currentPos.ry();
 
-            // - 1 because we don't want to do the top left tile twice.
-            for (; currentPos.y() > searchRect.y() - 1; --currentPos.ry()) {
+            // > rather than >= because we don't want to do the top left tile twice.
+            for (; currentPos.y() > searchRect.y(); --currentPos.ry()) {
                 if (setIfClosest(currentPos))
                     return;
             }
